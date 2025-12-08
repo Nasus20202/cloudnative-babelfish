@@ -1,0 +1,35 @@
+# Build artifacts
+*.tar.gz
+*.zip
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.log
+
+# Test outputs
+test-results/
+coverage/
+
+# Local environment
+.env
+.env.local
+*.local
+
+# Build cache
+.cache/

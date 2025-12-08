@@ -1,0 +1,31 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# CI/CD
+.github/
+
+# IDE
+.idea/
+.vscode/
+
+# Examples (not needed in build context)
+examples/
+
+# Build artifacts
+*.tar.gz
+*.zip
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local files
+.env
+.env.local
+*.local

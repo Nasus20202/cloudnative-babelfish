@@ -1,0 +1,231 @@
+name: Build and Push Multi-Arch Images
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: nasus20202/cloudnative-babelfish
+
+jobs:
+  # Build per-architecture images on native runners (faster than QEMU)
+  build-arch:
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - pg_major: "17"
+            babelfish_version: "BABEL_5_3_0__PG_17_6"
+            pg_version: "17.6"
+            babelfish_semver: "5.3.0"
+          - pg_major: "16"
+            babelfish_version: "BABEL_4_7_0__PG_16_10"
+            pg_version: "16.10"
+            babelfish_semver: "4.7.0"
+        # Architectures with native runners
+        arch:
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+
+    runs-on: ${{ matrix.arch.runner }}
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract arch from platform
+        id: arch
+        run: echo "arch=${PLATFORM#*/}" >> $GITHUB_OUTPUT
+        env:
+          PLATFORM: ${{ matrix.arch.platform }}
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: ${{ matrix.arch.platform }}
+          build-args: |
+            BABELFISH_VERSION=${{ matrix.version.babelfish_version }}
+            PG_MAJOR=${{ matrix.version.pg_major }}
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
+          cache-from: type=gha,scope=${{ matrix.version.babelfish_version }}-${{ steps.arch.outputs.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.version.babelfish_version }}-${{ steps.arch.outputs.arch }}
+
+      - name: Export digest
+        if: github.event_name != 'pull_request'
+        run: |
+          mkdir -p /tmp/digests/${{ matrix.version.pg_version }}-${{ matrix.version.babelfish_semver }}
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${{ matrix.version.pg_version }}-${{ matrix.version.babelfish_semver }}/${digest#sha256:}"
+
+      - name: Upload digest
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.version.pg_version }}-${{ matrix.version.babelfish_semver }}-${{ steps.arch.outputs.arch }}
+          path: /tmp/digests/${{ matrix.version.pg_version }}-${{ matrix.version.babelfish_semver }}/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # Merge multi-arch manifests
+  merge:
+    needs: build-arch
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - pg_version: "17.6"
+            pg_major: "17"
+            babelfish_semver: "5.3.0"
+            latest: true
+          - pg_version: "16.10"
+            pg_major: "16"
+            babelfish_semver: "4.7.0"
+            latest: false
+
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: digests-${{ matrix.pg_version }}-${{ matrix.babelfish_semver }}-*
+          path: /tmp/digests
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create manifest list and push
+        working-directory: /tmp/digests
+        run: |
+          TAGS="-t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.pg_version }}-${{ matrix.babelfish_semver }}"
+          TAGS="$TAGS -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.pg_version }}"
+          TAGS="$TAGS -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.pg_major }}-${{ matrix.babelfish_semver }}"
+          TAGS="$TAGS -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.pg_major }}"
+          if [ "${{ matrix.latest }}" = "true" ]; then
+            TAGS="$TAGS -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          fi
+          docker buildx imagetools create $TAGS \
+            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+
+  # Test the built images
+  test:
+    needs: merge
+    if: github.event_name != 'pull_request'
+    strategy:
+      matrix:
+        version:
+          - pg_version: "17.6"
+            babelfish_semver: "5.3.0"
+          - pg_version: "16.10"
+            babelfish_semver: "4.7.0"
+        arch:
+          - runner: ubuntu-24.04
+          - runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.arch.runner }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Test image
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.version.pg_version }}-${{ matrix.version.babelfish_semver }}"
+
+          echo "=== Testing image: $IMAGE ==="
+
+          echo ">>> Pulling image..."
+          docker pull "$IMAGE"
+
+          echo ">>> Verifying PostgreSQL binaries exist..."
+          docker run --rm "$IMAGE" which initdb postgres pg_ctl pg_controldata pg_basebackup
+
+          echo ">>> Verifying barman-cloud is installed..."
+          docker run --rm "$IMAGE" which barman-cloud-backup barman-cloud-restore
+
+          echo ">>> Verifying Babelfish extensions are present..."
+          docker run --rm "$IMAGE" sh -c "ls /opt/babelfish/lib/postgresql/ | grep babelfishpg"
+
+          echo ">>> Checking PostgreSQL version..."
+          docker run --rm "$IMAGE" postgres --version | grep -q "${{ matrix.version.pg_version }}"
+
+          echo "=== All tests passed for $IMAGE ==="
+
+  # Security scan with Trivy
+  security-scan:
+    needs: merge
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - pg_version: "17.6"
+            babelfish_semver: "5.3.0"
+          - pg_version: "16.10"
+            babelfish_semver: "4.7.0"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.pg_version }}-${{ matrix.babelfish_semver }}"
+          format: "sarif"
+          output: "trivy-results.sarif"
+          severity: "CRITICAL,HIGH"
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: "trivy-results.sarif"
+          category: "trivy-container-${{ matrix.pg_version }}-${{ matrix.babelfish_semver }}"
