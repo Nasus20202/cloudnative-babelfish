@@ -153,11 +153,10 @@ RUN ln -sf ${BABELFISH_HOME}/bin/initdb /usr/bin/initdb \
     && echo "${BABELFISH_HOME}/lib" > /etc/ld.so.conf.d/babelfish.conf \
     && ldconfig
 
-# Install barman-cloud and cleanup build dependencies
+# Install barman-cloud (required by CloudNativePG)
 RUN pip3 install --no-cache-dir --break-system-packages \
     barman[cloud,azure,google,snappy] \
-    && apt-get purge -y --auto-remove gcc python3-dev libpq-dev \
-    && rm -rf /root/.cache /var/lib/apt/lists/*
+    && rm -rf /root/.cache
 
 # Create postgres user and directories
 RUN (groupadd -r postgres --gid=26 2>/dev/null || groupmod -n postgres $(getent group 26 | cut -d: -f1) 2>/dev/null || true) \
