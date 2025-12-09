@@ -85,7 +85,7 @@ jobs:
 
       - name: Upload digest
         if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: digests-${{ matrix.version.pg_version }}-${{ matrix.version.babelfish_semver }}-${{ steps.arch.outputs.arch }}
           path: /tmp/digests/${{ matrix.version.pg_version }}-${{ matrix.version.babelfish_semver }}/*
@@ -115,7 +115,7 @@ jobs:
 
     steps:
       - name: Download digests
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: digests-${{ matrix.pg_version }}-${{ matrix.babelfish_semver }}-*
           path: /tmp/digests
