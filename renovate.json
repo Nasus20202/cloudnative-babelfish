@@ -4,7 +4,67 @@
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch"],
+      "matchDatasources": ["github-actions"],
       "automerge": true
+    },
+    {
+      "matchDatasources": ["github-releases"],
+      "matchPackageNames": ["babelfish-for-postgresql/babelfish-for-postgresql"],
+      "groupName": "Babelfish",
+      "automerge": false,
+      "separateMinorPatch": false
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["debian"],
+      "automerge": false
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update Babelfish version strings in format BABEL_X_Y_Z__PG_XX_YY",
+      "fileMatch": [
+        "^Dockerfile$",
+        "^\\.github/workflows/.*\\.ya?ml$",
+        "^Makefile$",
+        "^docker-bake\\.hcl$"
+      ],
+      "matchStrings": [
+        "(?:BABELFISH_VERSION|babelfish_version|PG17_VERSION|PG16_VERSION)(?:\\s*[=:]\\s*[\"']?)(?<currentValue>BABEL_\\d+_\\d+_\\d+__PG_\\d+_\\d+)[\"']?"
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "babelfish-for-postgresql/babelfish-for-postgresql"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Babelfish semantic versions (X.Y.Z format)",
+      "fileMatch": [
+        "^\\.github/workflows/.*\\.ya?ml$",
+        "^docker-bake\\.hcl$"
+      ],
+      "matchStrings": [
+        "babelfish_semver[:\\s=]*[\"']?(?<currentValue>\\d+\\.\\d+\\.\\d+)[\"']?"
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "babelfish-for-postgresql/babelfish-for-postgresql",
+      "extractVersionTemplate": "^BABEL_(?<major>\\d+)_(?<minor>\\d+)_(?<patch>\\d+)__PG_\\d+_\\d+$",
+      "currentValueTemplate": "{{major}}.{{minor}}.{{patch}}"
+    },
+    {
+      "customType": "regex",
+      "description": "Update PostgreSQL versions bundled with Babelfish",
+      "fileMatch": [
+        "^\\.github/workflows/.*\\.ya?ml$",
+        "^docker-bake\\.hcl$"
+      ],
+      "matchStrings": [
+        "babelfish_version[:\\s=]*[\"']?BABEL_\\d+_\\d+_\\d+__PG_(?<pgMajor>\\d+)_(?<pgMinor>\\d+)[\"']?[\\s\\S]*?pg_version[:\\s=]*[\"']?(?<currentValue>\\d+\\.\\d+)[\"']?"
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "babelfish-for-postgresql/babelfish-for-postgresql",
+      "extractVersionTemplate": "^BABEL_\\d+_\\d+_\\d+__PG_(?<major>\\d+)_(?<minor>\\d+)$",
+      "currentValueTemplate": "{{major}}.{{minor}}"
     }
   ]
 }
