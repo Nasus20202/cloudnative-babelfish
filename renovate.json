@@ -34,8 +34,7 @@
         "(?:BABELFISH_VERSION|babelfish_version|PG17_VERSION|PG16_VERSION)(?:\\s*[=:]\\s*[\"']?)(?<currentValue>BABEL_\\d+_\\d+_\\d+__PG_\\d+_\\d+)[\"']?"
       ],
       "datasourceTemplate": "github-releases",
-      "depNameTemplate": "babelfish-for-postgresql/babelfish-for-postgresql",
-      "extractVersionTemplate": "^BABEL_(?<version>\\d+_\\d+_\\d+)__PG_\\d+_\\d+$"
+      "depNameTemplate": "babelfish-for-postgresql/babelfish-for-postgresql"
     },
     {
       "customType": "regex",
