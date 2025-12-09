@@ -20,8 +20,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     BABELFISH_HOME=/opt/babelfish \
     PG_CONFIG=/opt/babelfish/bin/pg_config \
     BABELFISH_REPO=babelfish-for-postgresql/babelfish-for-postgresql \
-    ANTLR4_JAVA_BIN=/usr/bin/java \
-    CFLAGS="-O2 -Wall -Wno-error"
+    ANTLR4_JAVA_BIN=/usr/bin/java
 
 # Install build dependencies in a single layer
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -40,31 +39,33 @@ RUN wget -q https://github.com/${BABELFISH_REPO}/releases/download/${BABELFISH_V
     && tar -xzf ${BABELFISH_VERSION}.tar.gz \
     && rm ${BABELFISH_VERSION}.tar.gz
 
-# Build ANTLR4 C++ runtime
-RUN set -ex \
-    && ANTLR_JAR=$(find /build/${BABELFISH_VERSION}/contrib/babelfishpg_tsql/antlr/thirdparty/antlr -name "antlr-*-complete.jar" | head -n1) \
-    && ANTLR4_VERSION=$(basename "$ANTLR_JAR" .jar | sed 's/antlr-//;s/-complete//') \
+ENV PG_SRC=/build/${BABELFISH_VERSION}
+
+# Build ANTLR4 C++ runtime (using original working approach)
+WORKDIR /build
+RUN ANTLR_JAR=$(ls ${PG_SRC}/contrib/babelfishpg_tsql/antlr/thirdparty/antlr/antlr-*-complete.jar) \
+    && ANTLR4_VERSION=$(basename "$ANTLR_JAR" | sed 's/antlr-\(.*\)-complete.jar/\1/') \
     && echo "Detected ANTLR version: ${ANTLR4_VERSION}" \
     && cp "$ANTLR_JAR" /usr/local/lib/ \
     && wget -q http://www.antlr.org/download/antlr4-cpp-runtime-${ANTLR4_VERSION}-source.zip \
-    && unzip -q antlr4-cpp-runtime-${ANTLR4_VERSION}-source.zip \
+    && unzip -q -d antlr4-runtime antlr4-cpp-runtime-${ANTLR4_VERSION}-source.zip \
     && rm antlr4-cpp-runtime-${ANTLR4_VERSION}-source.zip \
     && echo "${ANTLR4_VERSION}" > /tmp/antlr_version \
-    && mkdir -p antlr4-build \
-    && cd antlr4-build \
-    && cmake ../runtime/Cpp \
+    && mkdir -p /build/antlr4-runtime/build \
+    && cd /build/antlr4-runtime/build \
+    && cmake .. \
         -DANTLR_JAR_LOCATION=/usr/local/lib/antlr-${ANTLR4_VERSION}-complete.jar \
         -DCMAKE_INSTALL_PREFIX=/usr/local \
         -DWITH_DEMO=False \
         -DBUILD_SHARED_LIBS=ON \
         -DBUILD_TESTS=OFF \
         -DCMAKE_CXX_STANDARD=17 \
-    && make -j${JOBS} \
+    && make -j${JOBS} antlr4_shared \
     && make install \
     && ldconfig
 
 # Build PostgreSQL with Babelfish patches, contrib, and ANTLR parser
-WORKDIR /build/${BABELFISH_VERSION}
+WORKDIR ${PG_SRC}
 RUN ./configure \
     --prefix=${BABELFISH_HOME} \
     --with-ldap --with-libxml --with-pam --with-uuid=ossp \
@@ -76,23 +77,24 @@ RUN ./configure \
     && cd contrib \
     && make -j${JOBS} \
     && make install \
-    && cd /build/${BABELFISH_VERSION}/contrib/babelfishpg_tsql/antlr \
+    && cd ${PG_SRC}/contrib/babelfishpg_tsql/antlr \
     && cmake -Wno-dev . \
     && make all \
     && ANTLR4_VERSION=$(cat /tmp/antlr_version) \
     && cp /usr/local/lib/libantlr4-runtime.so.${ANTLR4_VERSION} ${BABELFISH_HOME}/lib/
 
 # Build all Babelfish extensions in one layer
-RUN cd /build/${BABELFISH_VERSION}/contrib/babelfishpg_common \
+ENV CFLAGS="-O2 -Wall -Wno-error"
+RUN cd ${PG_SRC}/contrib/babelfishpg_common \
     && make -j${JOBS} \
     && make PG_CONFIG=${PG_CONFIG} install \
-    && cd /build/${BABELFISH_VERSION}/contrib/babelfishpg_money \
+    && cd ${PG_SRC}/contrib/babelfishpg_money \
     && make -j${JOBS} \
     && make PG_CONFIG=${PG_CONFIG} install \
-    && cd /build/${BABELFISH_VERSION}/contrib/babelfishpg_tds \
+    && cd ${PG_SRC}/contrib/babelfishpg_tds \
     && make -j${JOBS} \
     && make PG_CONFIG=${PG_CONFIG} install \
-    && cd /build/${BABELFISH_VERSION}/contrib/babelfishpg_tsql \
+    && cd ${PG_SRC}/contrib/babelfishpg_tsql \
     && sed -i 's/-Werror//g' Makefile src/Makefile 2>/dev/null || true \
     && make -j${JOBS} \
     && make PG_CONFIG=${PG_CONFIG} install
