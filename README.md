@@ -96,28 +96,3 @@ GO
 USE myapp;
 GO
 ```
-
-## Automated Dependency Updates
-
-This repository uses [Renovate](https://docs.renovatebot.com/) to automatically update dependencies:
-
-### What Gets Updated
-
-- **Babelfish Versions**: Automatically detects new Babelfish releases from [babelfish-for-postgresql/babelfish-for-postgresql](https://github.com/babelfish-for-postgresql/babelfish-for-postgresql/releases)
-  - Updates version strings in `Dockerfile`, GitHub workflows, `Makefile`, and `docker-bake.hcl`
-  - Tracks both the full version format (e.g., `BABEL_5_3_0__PG_17_6`) and semantic versions (e.g., `5.3.0`)
-  - Updates bundled PostgreSQL versions that come with Babelfish releases
-
-- **GitHub Actions**: Minor and patch updates to GitHub Actions are auto-merged
-
-- **Docker Base Images**: Updates to Debian base images (requires manual approval)
-
-### Configuration
-
-The Renovate configuration is in [`renovate.json`](./renovate.json). It uses custom regex managers to detect and update Babelfish version strings across multiple files:
-
-1. **Version String Manager**: Detects patterns like `BABELFISH_VERSION=BABEL_5_3_0__PG_17_6`
-2. **Semantic Version Manager**: Detects patterns like `babelfish_semver: "5.3.0"`
-3. **PostgreSQL Version Manager**: Detects patterns like `pg_version: "17.6"` when paired with Babelfish versions
-
-All Babelfish-related updates are grouped into a single PR for easier review and testing.
