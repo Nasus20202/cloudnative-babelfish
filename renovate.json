@@ -45,12 +45,12 @@
         "^docker-bake\\.hcl$"
       ],
       "matchStrings": [
-        "babelfish_semver:\\s*[\"']?(?<currentValue>\\d+\\.\\d+\\.\\d+)[\"']?"
+        "babelfish_semver[:\\s=]*[\"']?(?<currentValue>\\d+\\.\\d+\\.\\d+)[\"']?"
       ],
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "babelfish-for-postgresql/babelfish-for-postgresql",
-      "extractVersionTemplate": "^BABEL_(?<version>\\d+_\\d+_\\d+)__PG_\\d+_\\d+$",
-      "versioningTemplate": "semver"
+      "extractVersionTemplate": "^BABEL_(?<major>\\d+)_(?<minor>\\d+)_(?<patch>\\d+)__PG_\\d+_\\d+$",
+      "currentValueTemplate": "{{major}}.{{minor}}.{{patch}}"
     },
     {
       "customType": "regex",
@@ -60,12 +60,12 @@
         "^docker-bake\\.hcl$"
       ],
       "matchStrings": [
-        "pg_version:\\s*[\"']?(?<currentValue>\\d+\\.\\d+)[\"']?\\s*\\n\\s*babelfish_version:\\s*[\"']?BABEL_\\d+_\\d+_\\d+__PG_(?<pgMajor>\\d+)_(?<pgMinor>\\d+)[\"']?"
+        "babelfish_version[:\\s=]*[\"']?BABEL_\\d+_\\d+_\\d+__PG_(?<pgMajor>\\d+)_(?<pgMinor>\\d+)[\"']?[\\s\\S]*?pg_version[:\\s=]*[\"']?(?<currentValue>\\d+\\.\\d+)[\"']?"
       ],
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "babelfish-for-postgresql/babelfish-for-postgresql",
-      "extractVersionTemplate": "^BABEL_\\d+_\\d+_\\d+__PG_(?<version>\\d+_\\d+)$",
-      "versioningTemplate": "regex:^(?<major>\\d+)_(?<minor>\\d+)$"
+      "extractVersionTemplate": "^BABEL_\\d+_\\d+_\\d+__PG_(?<major>\\d+)_(?<minor>\\d+)$",
+      "currentValueTemplate": "{{major}}.{{minor}}"
     }
   ]
 }
