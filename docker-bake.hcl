@@ -91,6 +91,7 @@ target "pg17-latest" {
   }
   tags = [
     "${REGISTRY}/${REPOSITORY}:17.6-5.3.0",
+    "${REGISTRY}/${REPOSITORY}:17.6",
     "${REGISTRY}/${REPOSITORY}:17-5.3.0",
     "${REGISTRY}/${REPOSITORY}:17",
     "${REGISTRY}/${REPOSITORY}:latest"
@@ -106,6 +107,7 @@ target "pg16-latest" {
   }
   tags = [
     "${REGISTRY}/${REPOSITORY}:16.10-4.7.0",
+    "${REGISTRY}/${REPOSITORY}:16.10",
     "${REGISTRY}/${REPOSITORY}:16-4.7.0",
     "${REGISTRY}/${REPOSITORY}:16"
   ]
@@ -123,6 +125,7 @@ target "pg16-latest" {
 #   }
 #   tags = [
 #     "${REGISTRY}/${REPOSITORY}:18.0-6.0.0",  # Update versions
+#     "${REGISTRY}/${REPOSITORY}:18.0",
 #     "${REGISTRY}/${REPOSITORY}:18-6.0.0",
 #     "${REGISTRY}/${REPOSITORY}:18",
 #     "${REGISTRY}/${REPOSITORY}:latest"       # Move latest tag here
