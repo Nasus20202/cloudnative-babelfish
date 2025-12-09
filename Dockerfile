@@ -41,24 +41,26 @@ RUN wget -q https://github.com/${BABELFISH_REPO}/releases/download/${BABELFISH_V
     && rm ${BABELFISH_VERSION}.tar.gz
 
 # Build ANTLR4 C++ runtime
-RUN ANTLR_JAR=$(ls /build/${BABELFISH_VERSION}/contrib/babelfishpg_tsql/antlr/thirdparty/antlr/antlr-*-complete.jar) \
-    && ANTLR4_VERSION=$(basename "$ANTLR_JAR" | sed 's/antlr-\(.*\)-complete.jar/\1/') \
+RUN set -ex \
+    && ANTLR_JAR=$(find /build/${BABELFISH_VERSION}/contrib/babelfishpg_tsql/antlr/thirdparty/antlr -name "antlr-*-complete.jar" | head -n1) \
+    && ANTLR4_VERSION=$(basename "$ANTLR_JAR" .jar | sed 's/antlr-//;s/-complete//') \
     && echo "Detected ANTLR version: ${ANTLR4_VERSION}" \
     && cp "$ANTLR_JAR" /usr/local/lib/ \
     && wget -q http://www.antlr.org/download/antlr4-cpp-runtime-${ANTLR4_VERSION}-source.zip \
-    && unzip -q -d antlr4-runtime antlr4-cpp-runtime-${ANTLR4_VERSION}-source.zip \
+    && unzip -q antlr4-cpp-runtime-${ANTLR4_VERSION}-source.zip \
     && rm antlr4-cpp-runtime-${ANTLR4_VERSION}-source.zip \
     && echo "${ANTLR4_VERSION}" > /tmp/antlr_version \
-    && cd antlr4-runtime \
-    && cmake -B build -S . \
+    && mkdir -p antlr4-build \
+    && cd antlr4-build \
+    && cmake ../runtime/Cpp \
         -DANTLR_JAR_LOCATION=/usr/local/lib/antlr-${ANTLR4_VERSION}-complete.jar \
         -DCMAKE_INSTALL_PREFIX=/usr/local \
         -DWITH_DEMO=False \
         -DBUILD_SHARED_LIBS=ON \
         -DBUILD_TESTS=OFF \
         -DCMAKE_CXX_STANDARD=17 \
-    && cmake --build build --target antlr4_shared -j${JOBS} \
-    && cmake --install build \
+    && make -j${JOBS} \
+    && make install \
     && ldconfig
 
 # Build PostgreSQL with Babelfish patches, contrib, and ANTLR parser
@@ -171,3 +173,5 @@ USER 26
 
 # Set working directory
 WORKDIR /var/lib/postgresql
+
+# No entrypoint - CloudNativePG manages the process
