@@ -22,15 +22,46 @@ ENV DEBIAN_FRONTEND=noninteractive \
     BABELFISH_REPO=babelfish-for-postgresql/babelfish-for-postgresql \
     ANTLR4_JAVA_BIN=/usr/bin/java
 
-# Install build dependencies in a single layer
+# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential flex bison libxml2-dev libxml2-utils libxslt-dev \
-    libssl-dev libreadline-dev zlib1g-dev libldap2-dev libpam0g-dev \
-    gettext uuid-dev cmake lld libossp-uuid-dev gnulib xsltproc \
-    icu-devtools libicu-dev gawk curl openjdk-21-jre-headless \
-    openssl g++ python3-dev libpq-dev pkg-config libutfcpp-dev \
-    gnupg unixodbc-dev net-tools unzip wget ca-certificates \
-    libkrb5-dev liblz4-dev libzstd-dev \
+    build-essential \
+    bison \
+    ca-certificates \
+    cmake \
+    curl \
+    flex \
+    g++ \
+    gawk \
+    gettext \
+    gnulib \
+    gnupg \
+    icu-devtools \
+    libicu-dev \
+    libkrb5-dev \
+    libldap2-dev \
+    liblz4-dev \
+    libossp-uuid-dev \
+    libpam0g-dev \
+    libpq-dev \
+    libreadline-dev \
+    libssl-dev \
+    libutfcpp-dev \
+    libxml2-dev \
+    libxml2-utils \
+    libxslt-dev \
+    libzstd-dev \
+    lld \
+    net-tools \
+    openjdk-21-jre-headless \
+    openssl \
+    pkg-config \
+    python3-dev \
+    unixodbc-dev \
+    unzip \
+    uuid-dev \
+    wget \
+    xsltproc \
+    zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and extract Babelfish sources
@@ -41,7 +72,7 @@ RUN wget -q https://github.com/${BABELFISH_REPO}/releases/download/${BABELFISH_V
 
 ENV PG_SRC=/build/${BABELFISH_VERSION}
 
-# Build ANTLR4 C++ runtime (using original working approach)
+# Build ANTLR4 C++ runtime
 WORKDIR /build
 RUN ANTLR_JAR=$(ls ${PG_SRC}/contrib/babelfishpg_tsql/antlr/thirdparty/antlr/antlr-*-complete.jar) \
     && ANTLR4_VERSION=$(basename "$ANTLR_JAR" | sed 's/antlr-\(.*\)-complete.jar/\1/') \
@@ -68,9 +99,17 @@ RUN ANTLR_JAR=$(ls ${PG_SRC}/contrib/babelfishpg_tsql/antlr/thirdparty/antlr/ant
 WORKDIR ${PG_SRC}
 RUN ./configure \
     --prefix=${BABELFISH_HOME} \
-    --with-ldap --with-libxml --with-pam --with-uuid=ossp \
-    --enable-nls --with-libxslt --with-icu --with-openssl \
-    --with-gssapi --with-lz4 --with-zstd \
+    --enable-nls \
+    --with-gssapi \
+    --with-icu \
+    --with-ldap \
+    --with-libxml \
+    --with-libxslt \
+    --with-lz4 \
+    --with-openssl \
+    --with-pam \
+    --with-uuid=ossp \
+    --with-zstd \
     CFLAGS="-O2" \
     && make -j${JOBS} world-bin \
     && make install-world-bin \
@@ -83,7 +122,7 @@ RUN ./configure \
     && ANTLR4_VERSION=$(cat /tmp/antlr_version) \
     && cp /usr/local/lib/libantlr4-runtime.so.${ANTLR4_VERSION} ${BABELFISH_HOME}/lib/
 
-# Build all Babelfish extensions in one layer
+# Build all Babelfish extensions
 ENV CFLAGS="-O2 -Wall -Wno-error"
 RUN cd ${PG_SRC}/contrib/babelfishpg_common \
     && make -j${JOBS} \
@@ -123,13 +162,34 @@ LABEL maintainer="CloudNative Babelfish Contributors" \
       org.opencontainers.image.version="${BABELFISH_VERSION}" \
       org.opencontainers.image.licenses="Apache-2.0"
 
-# Install runtime dependencies and setup in fewer layers
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libssl3 openssl 'libldap-2*' libxml2 libpam0g uuid-runtime \
-    libossp-uuid16 libxslt1.1 'libicu*' libpq5 unixodbc \
-    'libreadline*' zlib1g libkrb5-3 liblz4-1 libzstd1 \
-    locales python3 python3-pip python3-setuptools \
-    gcc python3-dev libpq-dev procps coreutils ca-certificates \
+    ca-certificates \
+    coreutils \
+    gcc \
+    'libicu*' \
+    libkrb5-3 \
+    'libldap-2*' \
+    liblz4-1 \
+    libossp-uuid16 \
+    libpam0g \
+    libpq-dev \
+    libpq5 \
+    'libreadline*' \
+    libssl3 \
+    libxml2 \
+    libxslt1.1 \
+    libzstd1 \
+    locales \
+    openssl \
+    procps \
+    python3 \
+    python3-dev \
+    python3-pip \
+    python3-setuptools \
+    unixodbc \
+    uuid-runtime \
+    zlib1g \
     && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
     && locale-gen \
     && rm -rf /var/lib/apt/lists/*
@@ -172,7 +232,4 @@ EXPOSE 5432 1433
 # Switch to postgres user
 USER 26
 
-# Set working directory
 WORKDIR /var/lib/postgresql
-
-# No entrypoint - CloudNativePG manages the process
