@@ -31,7 +31,7 @@ variable "VERSIONS" {
     
     # PostgreSQL 17
     "17.6-5.3.0" = {
-      babelfish_version = "BABEL_5_3_0__PG_17_6"
+      babelfish_version = "BABEL_5_4_0__PG_17_7"
       pg_major          = "17"
       pg_version        = "17.6"
       babelfish_semver  = "5.3.0"
@@ -39,7 +39,7 @@ variable "VERSIONS" {
     }
     # PostgreSQL 16
     "16.10-4.7.0" = {
-      babelfish_version = "BABEL_4_7_0__PG_16_10"
+      babelfish_version = "BABEL_4_8_0__PG_16_11"
       pg_major          = "16"
       pg_version        = "16.10"
       babelfish_semver  = "4.7.0"
@@ -86,7 +86,7 @@ target "_common" {
 target "pg17-latest" {
   inherits = ["_common"]
   args = {
-    BABELFISH_VERSION = "BABEL_5_3_0__PG_17_6"
+    BABELFISH_VERSION = "BABEL_5_4_0__PG_17_7"
     PG_MAJOR          = "17"
   }
   tags = [
@@ -102,7 +102,7 @@ target "pg17-latest" {
 target "pg16-latest" {
   inherits = ["_common"]
   args = {
-    BABELFISH_VERSION = "BABEL_4_7_0__PG_16_10"
+    BABELFISH_VERSION = "BABEL_4_8_0__PG_16_11"
     PG_MAJOR          = "16"
   }
   tags = [
