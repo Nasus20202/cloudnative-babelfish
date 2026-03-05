@@ -94,10 +94,6 @@ build-local-pg16:
 		-t $(REGISTRY)/$(REPOSITORY):16.10-4.7.0 \
 		.
 
-# Push all images using docker bake
-push:
-	docker buildx bake --file docker-bake.hcl --push
-
 # Test the built image
 test:
 	@echo "Testing image: $(REGISTRY)/$(REPOSITORY):local"
