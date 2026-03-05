@@ -104,13 +104,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - pg_version: "17.6"
+          - pg_version: "17.7"
             pg_major: "17"
-            babelfish_semver: "5.3.0"
+            babelfish_semver: "5.4.0"
             latest: true
-          - pg_version: "16.10"
+          - pg_version: "16.11"
             pg_major: "16"
-            babelfish_semver: "4.7.0"
+            babelfish_semver: "4.8.0"
             latest: false
 
     steps:
@@ -151,10 +151,10 @@ jobs:
     strategy:
       matrix:
         version:
-          - pg_version: "17.6"
-            babelfish_semver: "5.3.0"
-          - pg_version: "16.10"
-            babelfish_semver: "4.7.0"
+          - pg_version: "17.7"
+            babelfish_semver: "5.4.0"
+          - pg_version: "16.11"
+            babelfish_semver: "4.8.0"
         arch:
           - runner: ubuntu-24.04
           - runner: ubuntu-24.04-arm
@@ -200,10 +200,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - pg_version: "17.6"
-            babelfish_semver: "5.3.0"
-          - pg_version: "16.10"
-            babelfish_semver: "4.7.0"
+          - pg_version: "17.7"
+            babelfish_semver: "5.4.0"
+          - pg_version: "16.11"
+            babelfish_semver: "4.8.0"
 
     steps:
       - name: Checkout repository
