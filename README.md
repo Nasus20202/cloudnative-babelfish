@@ -9,15 +9,6 @@ Babelfish is an open-source project that adds Microsoft SQL Server compatibility
 - **ARM support** - Microsoft SQL Server doesn't run on ARM architecture. Babelfish enables SQL Server workloads on ARM-based infrastructure (Apple Silicon, AWS Graviton, etc.)
 - **Kubernetes-native** - Fully compatible with CloudNativePG for cloud-native deployments
 
-## Supported Tags
-
-| Tag           | PostgreSQL | Babelfish | Architectures |
-| ------------- | ---------- | --------- | ------------- |
-| `17.6-5.3.0`  | 17.6       | 5.3.0     | amd64, arm64  |
-| `16.10-4.7.0` | 16.10      | 4.7.0     | amd64, arm64  |
-
-> **Note**: PostgreSQL 18 support will be added once Babelfish releases PG18 support. Check [Babelfish releases](https://github.com/babelfish-for-postgresql/babelfish-for-postgresql/releases) for updates.
-
 ## Example
 
 ```yaml
