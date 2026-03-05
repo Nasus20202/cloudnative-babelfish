@@ -12,7 +12,7 @@ ARG DEBIAN_VERSION=trixie
 # =============================================================================
 FROM debian:${DEBIAN_VERSION}-slim AS builder
 
-ARG BABELFISH_VERSION=BABEL_5_3_0__PG_17_6
+ARG BABELFISH_VERSION=BABEL_5_4_0__PG_17_7
 ARG PG_MAJOR=17
 ARG JOBS=4
 
@@ -144,7 +144,7 @@ RUN cd ${PG_SRC}/contrib/babelfishpg_common \
 FROM debian:${DEBIAN_VERSION}-slim AS runtime
 
 ARG PG_MAJOR=17
-ARG BABELFISH_VERSION=BABEL_5_3_0__PG_17_6
+ARG BABELFISH_VERSION=BABEL_5_4_0__PG_17_7
 
 ENV DEBIAN_FRONTEND=noninteractive \
     BABELFISH_HOME=/opt/babelfish \
