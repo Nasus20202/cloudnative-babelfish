@@ -1,14 +1,23 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
+  "extends": [
+    "config:recommended"
+  ],
   "packageRules": [
     {
-      "matchUpdateTypes": ["minor", "patch"],
-      "matchDatasources": ["github-actions"],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "matchDatasources": [
+        "github-actions"
+      ],
       "automerge": true
     },
     {
-      "matchDatasources": ["github-releases"],
+      "matchDatasources": [
+        "github-releases"
+      ],
       "matchPackageNames": [
         "babelfish-for-postgresql/babelfish-for-postgresql"
       ],
@@ -17,8 +26,12 @@
       "separateMinorPatch": false
     },
     {
-      "matchDatasources": ["docker"],
-      "matchPackageNames": ["debian"],
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "debian"
+      ],
       "automerge": false
     }
   ],
@@ -26,11 +39,11 @@
     {
       "customType": "regex",
       "description": "Update Babelfish version strings in format BABEL_X_Y_Z__PG_XX_YY",
-      "fileMatch": [
-        "^Dockerfile$",
-        "^\\.github/workflows/.*\\.ya?ml$",
-        "^Makefile$",
-        "^docker-bake\\.hcl$"
+      "managerFilePatterns": [
+        "/^Dockerfile$/",
+        "/^\\.github/workflows/.*\\.ya?ml$/",
+        "/^Makefile$/",
+        "/^docker-bake\\.hcl$/"
       ],
       "matchStrings": [
         "(?:BABELFISH_VERSION|babelfish_version|PG17_VERSION|PG16_VERSION)(?:\\s*[=:]\\s*[\"']?)(?<currentValue>BABEL_\\d+_\\d+_\\d+__PG_\\d+_\\d+)[\"']?"
@@ -41,7 +54,10 @@
     {
       "customType": "regex",
       "description": "Update Babelfish semantic versions (X.Y.Z format)",
-      "fileMatch": ["^\\.github/workflows/.*\\.ya?ml$", "^docker-bake\\.hcl$"],
+      "managerFilePatterns": [
+        "/^\\.github/workflows/.*\\.ya?ml$/",
+        "/^docker-bake\\.hcl$/"
+      ],
       "matchStrings": [
         "babelfish_semver[:\\s=]*[\"']?(?<currentValue>\\d+\\.\\d+\\.\\d+)[\"']?"
       ],
@@ -53,7 +69,10 @@
     {
       "customType": "regex",
       "description": "Update PostgreSQL versions bundled with Babelfish",
-      "fileMatch": ["^\\.github/workflows/.*\\.ya?ml$", "^docker-bake\\.hcl$"],
+      "managerFilePatterns": [
+        "/^\\.github/workflows/.*\\.ya?ml$/",
+        "/^docker-bake\\.hcl$/"
+      ],
       "matchStrings": [
         "babelfish_version[:\\s=]*[\"']?BABEL_\\d+_\\d+_\\d+__PG_(?<pgMajor>\\d+)_(?<pgMinor>\\d+)[\"']?[\\s\\S]*?pg_version[:\\s=]*[\"']?(?<currentValue>\\d+\\.\\d+)[\"']?"
       ],
