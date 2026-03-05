@@ -12,7 +12,7 @@ REPOSITORY ?= nasus20202/cloudnative-babelfish
 # Default versions
 # PG18_VERSION = BABEL_6_0_0__PG_18_0  # Uncomment when available (expected Q4 2025)
 PG17_VERSION = BABEL_5_3_0__PG_17_6
-PG16_VERSION = BABEL_4_7_0__PG_16_10
+PG16_VERSION = BABEL_5_4_0__PG_17_7
 
 .PHONY: help build build-all build-pg18 build-pg17 build-pg16 build-local build-local-pg17 build-local-pg16 push test clean
 
