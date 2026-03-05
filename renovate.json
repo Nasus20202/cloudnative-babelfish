@@ -1,9 +1,13 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
+  "extends": [
+    "config:recommended"
+  ],
   "packageRules": [
     {
-      "matchDatasources": ["github-tags"],
+      "matchDatasources": [
+        "github-tags"
+      ],
       "matchPackageNames": [
         "babelfish-for-postgresql/babelfish-for-postgresql"
       ],
@@ -12,18 +16,22 @@
     }
   ],
   "postUpgradeTasks": {
-    "commands": ["python3 scripts/sync-babelfish-vars.py"],
-    "fileFilters": [".github/workflows/*.ya?ml"],
+    "commands": [
+      "python3 scripts/sync-babelfish-vars.py"
+    ],
+    "fileFilters": [
+      ".github/workflows/*.ya?ml"
+    ],
     "executionMode": "branch"
   },
   "customManagers": [
     {
       "customType": "regex",
       "description": "Keep raw Babelfish tag strings (BABEL_X_Y_Z__PG_MM_NN) in sync",
-      "fileMatch": [
-        "^Dockerfile$",
-        "^\\.github/workflows/.*\\.ya?ml$",
-        "^Makefile$"
+      "managerFilePatterns": [
+        "/^Dockerfile$/",
+        "/^\\.github/workflows/.*\\.ya?ml$/",
+        "/^Makefile$/"
       ],
       "matchStrings": [
         "(?:BABELFISH_VERSION|babelfish_version|PG\\d+_VERSION)(?:\\s*[=:]\\s*[\"']?)(?<currentValue>BABEL_\\d+_\\d+_\\d+__PG_\\d+_\\d+)[\"']?"
