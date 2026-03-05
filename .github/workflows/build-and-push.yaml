@@ -24,12 +24,12 @@ jobs:
         version:
           - pg_major: "17"
             babelfish_version: "BABEL_5_4_0__PG_17_7"
-            pg_version: "17.6"
-            babelfish_semver: "5.3.0"
+            pg_version: "17.7"
+            babelfish_semver: "5.4.0"
           - pg_major: "16"
             babelfish_version: "BABEL_4_8_0__PG_16_11"
-            pg_version: "16.10"
-            babelfish_semver: "4.7.0"
+            pg_version: "16.11"
+            babelfish_semver: "4.8.0"
         # Architectures with native runners
         arch:
           - platform: linux/amd64
