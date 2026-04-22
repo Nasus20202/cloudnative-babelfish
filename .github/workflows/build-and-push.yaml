@@ -217,7 +217,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.35.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.pg_version }}-${{ matrix.babelfish_semver }}"
           format: "sarif"
